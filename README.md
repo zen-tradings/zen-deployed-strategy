@@ -5,7 +5,7 @@
 > **Boundary**: research, backtesting, model training, and notebooks live in a
 > **separate research repository**. This repo consumes *finalized, validated*
 > strategy logic and runs it in production: load data → run strategies →
-> apply risk → emit signals. Data access is delegated to
+> apply risk → emit signals → execute on Alpaca paper accounts. Data access is delegated to
 > [`zen-massive-data-access`](https://github.com/zen-tradings/zen-massive-data-access)
 > (Massive.com, ex-Polygon.io) — verified live.
 
@@ -21,6 +21,10 @@ python -m data.pull                python -m deployment.runner --frequency daily
        │                             ├─ deployment.risk.apply_risk
        ▼                             └─ emit JSON signal files
   closes_YYYYMMDD.parquet   ──rsync/NFS──►  closes_latest.parquet
+
+python -m deployment.execution --signal <file>   # per signal, plan-only default
+  └─ resolve Alpaca account (accounts.yaml + env creds)
+     → whole-share DAY limit orders (--submit to place)
 ```
 
 - **Handoff**: plain parquet files in a dated directory. No Kafka, no streaming,
@@ -35,9 +39,10 @@ python -m data.pull                python -m deployment.runner --frequency daily
 ```
 data/            production data layer (pull CLI on data server, loader on strategy server)
 strategies/      frequency-first: daily/{rule,light_ml}, weekly/rule, monthly/rule + base.py
-deployment/      runner.py, risk.py, scheduler/ (systemd + cron), ops/ (log, health)
-config/          universes.yaml — symbol lists per frequency
-tests/           deployment path only: data load, signal shape, risk
+deployment/      runner.py, risk.py, execution.py (Alpaca adapter, plan-only default),
+                 accounts.py (creds from env), scheduler/ (systemd + cron), ops/ (log, health)
+config/          universes.yaml (symbols per frequency), accounts.yaml (strategy → account alias)
+tests/           deployment path only: data load, signal shape, risk, order planning
 ```
 
 Strategy interface (all a strategy needs):

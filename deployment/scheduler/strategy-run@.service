@@ -1,0 +1,10 @@
+# Strategy server: templated unit — instance name is the frequency.
+# e.g. systemctl start strategy-run@daily
+[Unit]
+Description=Run %i strategies (load data -> signals -> risk -> emit)
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/zen-deployed-strategy
+EnvironmentFile=/etc/zen-strategy/runner.env  # STRATEGY_DATA_DIR, STRATEGY_SIGNALS_DIR
+ExecStart=/opt/zen-deployed-strategy/.venv/bin/python -m deployment.runner --frequency %i

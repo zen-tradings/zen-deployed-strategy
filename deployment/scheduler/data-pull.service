@@ -1,0 +1,11 @@
+# Data server: pull daily adjusted closes after market close.
+[Unit]
+Description=Pull daily closes from Massive to parquet handoff
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/zen-deployed-strategy
+EnvironmentFile=/etc/zen-strategy/data.env   # MASSIVE_API_KEY, STRATEGY_DATA_DIR
+ExecStart=/opt/zen-deployed-strategy/.venv/bin/python -m data.pull --lookback-days 400

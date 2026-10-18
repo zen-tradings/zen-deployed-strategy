@@ -1,0 +1,8 @@
+# Cron alternative to the systemd timers (server local time = America/New_York).
+# Data server — after-close pull:
+10 17 * * 1-5  cd /opt/zen-deployed-strategy && .venv/bin/python -m data.pull --lookback-days 400 >> /var/log/zen-strategy/pull.log 2>&1
+# Strategy server — runs after the pull has landed:
+40 17 * * 1-5  cd /opt/zen-deployed-strategy && .venv/bin/python -m deployment.runner --frequency daily   >> /var/log/zen-strategy/daily.log 2>&1
+45 17 * * 5    cd /opt/zen-deployed-strategy && .venv/bin/python -m deployment.runner --frequency weekly  >> /var/log/zen-strategy/weekly.log 2>&1
+50 17 1-3 * *  cd /opt/zen-deployed-strategy && .venv/bin/python -m deployment.runner --frequency monthly >> /var/log/zen-strategy/monthly.log 2>&1
+# (monthly: days 1-3 so a weekend month-start still gets the first trading day)

@@ -1,0 +1,15 @@
+# Symbol universes per trading frequency.
+# The data pull takes the union of all frequencies so one parquet serves all runners.
+daily:
+  - SOXL
+  - SPY
+  - QQQ
+weekly:
+  - SPY
+  - QQQ
+  - IWM
+  - TLT
+monthly:
+  - SPY
+  - TLT
+  - GLD

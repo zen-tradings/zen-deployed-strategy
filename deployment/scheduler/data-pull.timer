@@ -1,0 +1,10 @@
+# 17:10 ET weekdays (after Massive publishes the completed session).
+[Unit]
+Description=Daily after-close data pull
+
+[Timer]
+OnCalendar=Mon..Fri 17:10 America/New_York
+Persistent=true
+
+[Install]
+WantedBy=timers.target

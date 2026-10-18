@@ -7,4 +7,5 @@ Description=Run %i strategies (load data -> signals -> risk -> emit)
 Type=oneshot
 WorkingDirectory=/opt/zen-deployed-strategy
 EnvironmentFile=/etc/zen-strategy/runner.env  # STRATEGY_DATA_DIR, STRATEGY_SIGNALS_DIR
+EnvironmentFile=/etc/zen-strategy/alpaca.env  # ALPACA_PAPER_N_KEY/SECRET (chmod 600)
 ExecStart=/opt/zen-deployed-strategy/.venv/bin/python -m deployment.runner --frequency %i

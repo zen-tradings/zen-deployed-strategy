@@ -65,6 +65,16 @@ Environment:
 | `MASSIVE_API_KEY` | data | Massive.com auth (used by `massive_access`) |
 | `STRATEGY_DATA_DIR` | both | parquet handoff directory |
 | `STRATEGY_SIGNALS_DIR` | strategy | output signal JSON files |
+| `ALPACA_PAPER_N_KEY` / `_SECRET` | strategy | per-account creds (see below) |
+
+### Secrets (Alpaca accounts)
+
+**Keys and secrets are never committed.** The repo holds only the non-secret
+mapping `config/accounts.yaml` (strategy → account alias). On the strategy
+server, put real credentials in `/etc/zen-strategy/alpaca.env` (mode 600,
+owned by the service user), loaded via systemd `EnvironmentFile`. Use
+`.env.example` as the template. `deployment/accounts.py` resolves
+`<ALIAS>_KEY`/`<ALIAS>_SECRET` at runtime and fails closed if missing.
 
 ## End-to-end example
 

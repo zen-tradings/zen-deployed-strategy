@@ -1,0 +1,7 @@
+# Strategy -> Alpaca account alias mapping (NON-SECRET).
+# Each alias resolves to env vars on the server: <ALIAS>_KEY / <ALIAS>_SECRET
+# (e.g. ALPACA_PAPER_1_KEY), loaded from /etc/zen-strategy/alpaca.env via
+# systemd EnvironmentFile. Keys and secrets are NEVER committed to this repo.
+ema20_trend_soxl: ALPACA_PAPER_1
+momentum_top2_60d: ALPACA_PAPER_2
+equal_weight_monthly: ALPACA_PAPER_3

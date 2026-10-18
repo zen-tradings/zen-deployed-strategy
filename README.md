@@ -92,7 +92,13 @@ python -m deployment.runner --frequency daily
 #   applies risk (cap 0.5, vol scaling) → final weights
 #   writes /var/lib/strategy-signals/2026-10-16_ema20_trend_soxl.json
 
-# 3. Health check (either server)
+# 3. Execute a signal on its mapped Alpaca account (PLAN-ONLY by default)
+python -m deployment.execution --signal /var/lib/strategy-signals/2026-10-16_ema20_trend_soxl.json
+# → resolves account from config/accounts.yaml + env creds, fetches equity &
+#   positions, plans whole-share DAY limit orders (±20 bps buffer), logs them.
+# Add --submit to actually place the orders.
+
+# 4. Health check (either server)
 python -m deployment.ops.health
 ```
 

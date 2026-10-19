@@ -21,6 +21,7 @@ import argparse
 import json
 import logging
 import math
+import os
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -33,6 +34,10 @@ from deployment.ops.log import setup_logging
 log = logging.getLogger("deployment.execution")
 
 LIMIT_BUFFER = 0.002  # 20 bps through the last price so DAY limits fill
+DATA_URL = "https://data.alpaca.markets"
+# Free Alpaca plans may not query recent SIP data; IEX works on every plan.
+# Override with ALPACA_DATA_FEED=sip on a paid market-data subscription.
+DEFAULT_FEED = "iex"
 
 
 class ExecutionError(RuntimeError):
@@ -75,13 +80,16 @@ class AlpacaClient:
 
     def last_prices(self, symbols: list[str]) -> dict[str, float]:
         """Latest trade price per symbol (Alpaca market-data endpoint)."""
+        feed = os.environ.get("ALPACA_DATA_FEED", DEFAULT_FEED)
         out: dict[str, float] = {}
         for sym in symbols:
             resp = self._http.get(
-                f"https://data.alpaca.markets/v2/stocks/{sym}/trades/latest"
+                f"{DATA_URL}/v2/stocks/{sym}/trades/latest", params={"feed": feed}
             )
             if resp.status_code != 200:
-                raise ExecutionError(f"last price {sym}: HTTP {resp.status_code}")
+                raise ExecutionError(
+                    f"last price {sym} (feed={feed}): HTTP {resp.status_code}: {resp.text[:200]}"
+                )
             out[sym] = float(resp.json()["trade"]["p"])
         return out
 

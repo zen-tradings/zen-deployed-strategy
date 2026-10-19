@@ -1,11 +1,22 @@
-# Strategy server: templated unit — instance name is the frequency.
-# e.g. systemctl start strategy-run@daily
+# Templated runner — instance name is the frequency: strategy-run@daily / @weekly / @monthly.
+# runner.env provides STRATEGY_DATA_DIR and STRATEGY_SIGNALS_DIR.
+# The runner only emits signal files; it does not need Alpaca credentials.
 [Unit]
 Description=Run %i strategies (load data -> signals -> risk -> emit)
+After=data-pull.service
+OnFailure=zen-notify@%n.service
 
 [Service]
 Type=oneshot
+User=zen
+Group=zen
 WorkingDirectory=/opt/zen-deployed-strategy
-EnvironmentFile=/etc/zen-strategy/runner.env  # STRATEGY_DATA_DIR, STRATEGY_SIGNALS_DIR
-EnvironmentFile=/etc/zen-strategy/alpaca.env  # ALPACA_PAPER_N_KEY/SECRET (chmod 600)
+EnvironmentFile=/etc/zen-strategy/runner.env
 ExecStart=/opt/zen-deployed-strategy/.venv/bin/python -m deployment.runner --frequency %i
+StateDirectory=strategy-data strategy-signals
+StateDirectoryMode=0750
+TimeoutStartSec=10min
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true

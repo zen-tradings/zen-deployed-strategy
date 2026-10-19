@@ -40,7 +40,8 @@ python -m deployment.execution --signal <file>   # per signal, plan-only default
 data/            production data layer (pull CLI on data server, loader on strategy server)
 strategies/      frequency-first: daily/{rule,light_ml}, weekly/rule, monthly/rule + base.py
 deployment/      runner.py, risk.py, execution.py (Alpaca adapter, plan-only default),
-                 accounts.py (creds from env), scheduler/ (systemd + cron), ops/ (log, health)
+                 accounts.py (creds from env), scheduler/ (systemd + cron),
+                 ops/ (log, health, notify), INSTALL.md (server runbook)
 config/          universes.yaml (symbols per frequency), accounts.yaml (strategy → account alias)
 tests/           deployment path only: data load, signal shape, risk, order planning
 ```
@@ -71,13 +72,15 @@ Environment:
 | `STRATEGY_DATA_DIR` | both | parquet handoff directory |
 | `STRATEGY_SIGNALS_DIR` | strategy | output signal JSON files |
 | `ALPACA_PAPER_N_KEY` / `_SECRET` | strategy | per-account creds (see below) |
+| `ALPACA_DATA_FEED` | strategy | `iex` (default, free plans) or `sip` |
+| `ALERT_WEBHOOK_URL` | both | optional failure alerts (Slack/Discord) |
 
 ### Secrets (Alpaca accounts)
 
 **Keys and secrets are never committed.** The repo holds only the non-secret
 mapping `config/accounts.yaml` (strategy → account alias). On the strategy
 server, put real credentials in `/etc/zen-strategy/alpaca.env` (mode 600,
-owned by the service user), loaded via systemd `EnvironmentFile`. Use
+owned by the service user), sourced only for execution runs (the runner units don't load it). Use
 `.env.example` as the template. `deployment/accounts.py` resolves
 `<ALIAS>_KEY`/`<ALIAS>_SECRET` at runtime and fails closed if missing.
 
@@ -103,15 +106,22 @@ python -m deployment.execution --signal /var/lib/strategy-signals/2026-10-16_ema
 #   positions, plans whole-share DAY limit orders (±20 bps buffer), logs them.
 # Add --submit to actually place the orders.
 
-# 4. Health check (either server)
+# 4. Health check (exit 1 if data stale or no signals for the latest session)
 python -m deployment.ops.health
 ```
 
-## Scheduling
+## Scheduling & server install
 
-systemd units in `deployment/scheduler/` (`data-pull.{service,timer}`,
-`strategy-run@.service` + per-frequency timers) or `cron.example`.
-Pull at 17:10 ET; runners at 17:40 ET so the handoff has landed.
+systemd units in `deployment/scheduler/`: `data-pull.{service,timer}`,
+`strategy-run@.service` + `@daily/@weekly/@monthly` timers, `zen-health.{service,timer}`,
+and `zen-notify@.service` (wired via `OnFailure=` to every unit; webhook via
+`ALERT_WEBHOOK_URL`). All run as the unprivileged `zen` user with systemd hardening.
+Pull at 17:10 ET; runners at 17:40/17:45/17:50 ET; health check at 18:15 ET.
+Weekly/monthly runners emit **at most one signal per period** so catch-up or
+repeat timer firings never cause a double rebalance. `cron.example` is a fallback.
+
+**Single-host deploy** (data + strategy roles on one droplet, shared
+`STRATEGY_DATA_DIR`, no rsync): see [`deployment/INSTALL.md`](deployment/INSTALL.md).
 
 ## Adding / replacing a strategy
 

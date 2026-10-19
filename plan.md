@@ -103,4 +103,4 @@ light-ML is only a sub-folder within each frequency.
 - **Phase 1** — data layer: pull CLI delegating to `massive-access`, consumer loader with fail-closed checks. ✅ (live-verified against Massive)
 - **Phase 2** — runner + risk + ops: fail-closed checks, logging, signal output. ✅ (scaffolded with tests)
 - **Phase 3** — strategies: port remaining validated implementations to reach 3–5 daily, 2–3 weekly, 1–2 monthly.
-- **Phase 4** — scheduling & ops hardening: install systemd timers on both servers, health checks, runbook.
+- **Phase 4** — scheduling & ops hardening: systemd units for all frequencies (service user, hardening, OnFailure alerts), health timer, once-per-period emission, single-host runbook (`deployment/INSTALL.md`). ✅ (in repo; pending install on `zen-trading-strategy-layer`)

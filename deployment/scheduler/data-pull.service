@@ -1,11 +1,24 @@
-# Data server: pull daily adjusted closes after market close.
+# Pull daily adjusted closes after market close (data role).
+# Env file provides MASSIVE_API_KEY and STRATEGY_DATA_DIR.
+# NOTE: systemd does not support trailing inline comments — keep comments on their own lines.
 [Unit]
 Description=Pull daily closes from Massive to parquet handoff
 Wants=network-online.target
 After=network-online.target
+OnFailure=zen-notify@%n.service
 
 [Service]
 Type=oneshot
+User=zen
+Group=zen
 WorkingDirectory=/opt/zen-deployed-strategy
-EnvironmentFile=/etc/zen-strategy/data.env   # MASSIVE_API_KEY, STRATEGY_DATA_DIR
+EnvironmentFile=/etc/zen-strategy/data.env
 ExecStart=/opt/zen-deployed-strategy/.venv/bin/python -m data.pull --lookback-days 400
+# Creates /var/lib/strategy-data owned by zen (shared with the runner on a single host).
+StateDirectory=strategy-data
+StateDirectoryMode=0750
+TimeoutStartSec=15min
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true

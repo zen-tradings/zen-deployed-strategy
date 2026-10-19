@@ -1,0 +1,17 @@
+# Post-run health check: fails (and alerts via OnFailure) when the handoff is
+# stale or today's signals are missing.
+[Unit]
+Description=Zen strategy health check
+OnFailure=zen-notify@%n.service
+
+[Service]
+Type=oneshot
+User=zen
+Group=zen
+WorkingDirectory=/opt/zen-deployed-strategy
+EnvironmentFile=/etc/zen-strategy/runner.env
+ExecStart=/opt/zen-deployed-strategy/.venv/bin/python -m deployment.ops.health
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true

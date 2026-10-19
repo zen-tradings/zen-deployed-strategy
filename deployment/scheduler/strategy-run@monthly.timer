@@ -1,0 +1,12 @@
+# Monthly strategies: days 1-3 at 17:50 ET so a weekend month-start still gets a run.
+# The runner emits at most one signal per strategy per month (deployment.runner.
+# already_emitted), so the extra day-2/3 runs are no-ops once a signal exists.
+[Unit]
+Description=Monthly strategy run
+
+[Timer]
+OnCalendar=*-*-01..03 17:50 America/New_York
+Persistent=true
+
+[Install]
+WantedBy=timers.target

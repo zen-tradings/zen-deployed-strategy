@@ -1,0 +1,17 @@
+# Failure notifier, triggered via OnFailure=zen-notify@%n.service.
+# Optional /etc/zen-strategy/alerts.env with ALERT_WEBHOOK_URL (Slack/Discord-style).
+# Without a webhook it only logs to journald.
+[Unit]
+Description=Alert on failure of %i
+
+[Service]
+Type=oneshot
+User=zen
+Group=zen
+WorkingDirectory=/opt/zen-deployed-strategy
+EnvironmentFile=-/etc/zen-strategy/alerts.env
+ExecStart=/opt/zen-deployed-strategy/.venv/bin/python -m deployment.ops.notify %i
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
